@@ -327,33 +327,561 @@
         idEstudio: document.getElementById('idEstudio').value,
         fecha: document.getElementById('fecha').value,
         materia: document.getElementById('materia').value,
-        cantidad: document.getElementById('cantidad').value,
-        tiempo: document.getElementById('tiempo').value
+        cantidad: document.getElementById('cantidad').value,<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pomodoro Tracker</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #050505;
+      --card-bg: #111;
+      --neon-green: #39ff14;
+      --neon-dim: rgba(57, 255, 20, 0.2);
+      --text-main: #eee;
+      --muted: #777;
+      --danger: #ff3b3b;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 900px) {
+      .dashboard { grid-template-columns: 340px 1fr; }
+    }
+
+    .neon-box {
+      background: var(--card-bg);
+      border: 1px solid var(--neon-green);
+      box-shadow: 0 0 6px var(--neon-dim);
+      padding: 18px;
+      border-radius: 10px;
+    }
+
+    h2, h3 {
+      color: var(--neon-green);
+      text-transform: uppercase;
+      text-shadow: 0 0 6px var(--neon-dim);
+      margin: 0 0 12px 0;
+    }
+
+    .statusbar {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+
+    .statusbar .ok { color: var(--neon-green); }
+    .statusbar .bad { color: var(--danger); }
+
+    .form-group { margin-bottom: 14px; }
+
+    label {
+      display: block;
+      color: var(--neon-green);
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      background: #000;
+      border: 1px solid #333;
+      border-bottom: 2px solid var(--neon-green);
+      color: #fff;
+      padding: 10px;
+      font-family: inherit;
+      box-sizing: border-box;
+      border-radius: 6px;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 10px var(--neon-dim);
+    }
+
+    .btn-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      background: transparent;
+      color: var(--neon-green);
+      border: 1px solid var(--neon-green);
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      text-transform: uppercase;
+      transition: 0.25s;
+      flex: 1;
+      border-radius: 8px;
+    }
+
+    button:hover {
+      background: var(--neon-green);
+      color: #000;
+      box-shadow: 0 0 16px var(--neon-green);
+    }
+
+    button.secondary {
+      border-color: #666;
+      color: #999;
+    }
+
+    button.secondary:hover {
+      background: #222;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none !important;
+    }
+
+    .flashcard-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .flashcard {
+      background: #000;
+      border: 1px solid var(--neon-green);
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px;
+    }
+
+    .flashcard .metric {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .flashcard .label {
+      font-size: 0.85rem;
+      color: var(--neon-green);
+      opacity: 0.95;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      max-height: 640px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th {
+      text-align: left;
+      border-bottom: 2px solid var(--neon-green);
+      color: var(--neon-green);
+      padding: 10px;
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      z-index: 2;
+    }
+
+    td {
+      border-bottom: 1px solid #333;
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    tr:hover {
+      background: rgba(57, 255, 20, 0.06);
+      cursor: pointer;
+    }
+
+    #loader {
+      text-align: center;
+      color: var(--neon-green);
+      margin: 20px;
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .row-total {
+      color: var(--neon-green);
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loader">CARGANDO SISTEMA...</div>
+
+  <div class="dashboard" id="app" style="display:none;">
+
+    <!-- Panel izquierdo -->
+    <div class="neon-box">
+      <h3>Control Pomodoro</h3>
+
+      <form id="studyForm">
+        <input type="hidden" id="idEstudio" name="idEstudio" />
+
+        <div class="form-group">
+          <label>FECHA</label>
+          <input type="date" id="fecha" name="fecha" required />
+        </div>
+
+        <div class="form-group">
+          <label>MATERIA</label>
+          <input type="text" id="materia" name="materia" list="materiasList" placeholder="Ej: Cálculo 1" required />
+          <datalist id="materiasList"></datalist>
+        </div>
+
+        <div class="form-group">
+          <label>CANTIDAD (Pomodoros)</label>
+          <input type="number" id="cantidad" name="cantidad" value="1" min="1" required />
+        </div>
+
+        <div class="form-group">
+          <label>TIEMPO (Minutos)</label>
+          <input type="number" id="tiempo" name="tiempo" value="25" min="1" required />
+        </div>
+
+        <div class="btn-container">
+          <button type="button" id="btnSave" onclick="submitForm()">GUARDAR</button>
+          <button type="button" class="secondary" onclick="resetForm()">NUEVO</button>
+        </div>
+      </form>
+
+      <div class="statusbar" id="statusbar">
+        <div>API: <span id="apiStatus">-</span></div>
+        <div class="small" id="apiDebug"></div>
+      </div>
+
+      <div class="hint">
+        * Click en la tabla para editar registro.<br/>
+        * NUEVO limpia el ID.
+      </div>
+    </div>
+
+    <!-- Panel derecho -->
+    <div>
+      <div id="flashcards" class="flashcard-container"></div>
+
+      <div class="neon-box table-container">
+        <h3>Historial</h3>
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Materia</th>
+              <th>Cant</th>
+              <th>Tiempo</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /**
+     * =========================
+     * CONFIG (tu Web App)
+     * =========================
+     */
+    const API_URL = "https://script.google.com/macros/s/AKfycbxb2e3mLl1Im82X1HR5xBIhzf0llamvKANwiGe0qaDyc2APfrcKRC6GxtSkHFAVYFIS/exec";
+
+    /**
+     * Si tu navegador bloquea el GET por CORS (pasa en algunos),
+     * poné esto en true y el HTML cambia a JSONP automáticamente.
+     * (No toca tu Apps Script, solo cambia cómo leemos.)
+     */
+    const FORCE_JSONP = false;
+
+    // Estado local
+    let globalRows = [];
+    let materiasSet = new Set();
+
+    window.onload = () => {
+      document.getElementById("fecha").valueAsDate = new Date();
+      loadDataFirstTime();
+    };
+
+    /**
+     * =========================
+     * API Helpers
+     * =========================
+     */
+    function setApiStatus(ok, msg, debug = "") {
+      const st = document.getElementById("apiStatus");
+      const dbg = document.getElementById("apiDebug");
+      st.className = ok ? "ok" : "bad";
+      st.textContent = msg;
+      dbg.textContent = debug || "";
+    }
+
+    async function apiGetData_fetch() {
+      const url = new URL(API_URL);
+      url.searchParams.set("action", "getData");
+
+      const res = await fetch(url.toString(), { method: "GET", redirect: "follow" });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "getData failed");
+      return data;
+    }
+
+    function apiGetData_jsonp() {
+      return new Promise((resolve, reject) => {
+        const cbName = "jsonp_cb_" + Date.now();
+        window[cbName] = (data) => {
+          try {
+            delete window[cbName];
+            script.remove();
+            if (!data.ok) throw new Error(data.error || "getData jsonp failed");
+            resolve(data);
+          } catch (e) {
+            reject(e);
+          }
+        };
+
+        const url = new URL(API_URL);
+        url.searchParams.set("action", "getData");
+        url.searchParams.set("callback", cbName);
+
+        const script = document.createElement("script");
+        script.src = url.toString();
+        script.onerror = () => {
+          delete window[cbName];
+          script.remove();
+          reject(new Error("JSONP load failed"));
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+
+    async function apiGetData() {
+      if (FORCE_JSONP) return await apiGetData_jsonp();
+      return await apiGetData_fetch();
+    }
+
+    async function apiSaveRecord(payload) {
+      const url = new URL(API_URL);
+      url.searchParams.set("action", "saveRecord");
+
+      // CLAVE: Content-Type text/plain para evitar preflight
+      const res = await fetch(url.toString(), {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "saveRecord failed");
+      return data;
+    }
+
+    /**
+     * =========================
+     * Carga inicial
+     * =========================
+     */
+    async function loadDataFirstTime() {
+      try {
+        const data = await apiGetData();
+
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("app").style.display = "grid";
+
+        globalRows = data.rows || [];
+        setApiStatus(true, "OK", "Datos cargados.");
+
+        renderAll();
+      } catch (err) {
+        // Si falla por CORS en GET, te lo muestro claro
+        console.error(err);
+        document.getElementById("loader").innerText = "ERROR CARGANDO. Revisá consola (F12).";
+        setApiStatus(false, "ERROR", String(err));
+      }
+    }
+
+    /**
+     * =========================
+     * Render UI
+     * =========================
+     */
+    function renderAll() {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      const fragment = document.createDocumentFragment();
+      const materiaTotals = {};
+      materiasSet = new Set();
+
+      for (let i = globalRows.length - 1; i >= 0; i--) {
+        const row = globalRows[i] || [];
+        const [id, fecha, materia, cant, tiempo, totalStr] = row;
+
+        if (!materia) continue;
+
+        materiasSet.add(materia);
+
+        const tr = document.createElement("tr");
+        tr.dataset.id = id;
+        tr.onclick = () => loadRecordIntoForm(row);
+
+        tr.innerHTML = `
+          <td>${escapeHtml(fecha || "")}</td>
+          <td>${escapeHtml(materia || "")}</td>
+          <td>${escapeHtml(String(cant ?? ""))}</td>
+          <td>${escapeHtml(String(tiempo ?? ""))}</td>
+          <td class="row-total">${escapeHtml(totalStr || "")}</td>
+        `;
+        fragment.appendChild(tr);
+
+        const minutes = (parseInt(cant) || 0) * (parseInt(tiempo) || 0);
+        materiaTotals[materia] = (materiaTotals[materia] || 0) + minutes;
+      }
+
+      tbody.appendChild(fragment);
+      updateDatalist();
+      renderFlashcards(materiaTotals);
+    }
+
+    function updateDatalist() {
+      const dl = document.getElementById("materiasList");
+      dl.innerHTML = "";
+      materiasSet.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        dl.appendChild(opt);
+      });
+    }
+
+    function renderFlashcards(totals) {
+      const container = document.getElementById("flashcards");
+      container.innerHTML = "";
+
+      // ordenar por más minutos
+      const entries = Object.entries(totals).sort((a,b) => (b[1]||0) - (a[1]||0));
+
+      for (const [materia, minutes] of entries) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const timeStr = `${hours}:${String(mins).padStart(2, "0")}`;
+
+        const card = document.createElement("div");
+        card.className = "flashcard";
+        card.innerHTML = `
+          <div class="metric">${escapeHtml(timeStr)}</div>
+          <div class="label">${escapeHtml(materia)}</div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function loadRecordIntoForm(row) {
+      document.getElementById("idEstudio").value = row[0] || "";
+
+      // DD/MM/YYYY -> YYYY-MM-DD
+      const parts = String(row[1] || "").split("/");
+      if (parts.length === 3) {
+        document.getElementById("fecha").value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+
+      document.getElementById("materia").value = row[2] || "";
+      document.getElementById("cantidad").value = row[3] || 1;
+      document.getElementById("tiempo").value = row[4] || 25;
+
+      const btn = document.getElementById("btnSave");
+      btn.innerText = "ACTUALIZAR";
+      btn.style.boxShadow = "0 0 16px var(--neon-green)";
+    }
+
+    function resetForm() {
+      document.getElementById("studyForm").reset();
+      document.getElementById("idEstudio").value = "";
+      document.getElementById("fecha").valueAsDate = new Date();
+
+      const btn = document.getElementById("btnSave");
+      btn.innerText = "GUARDAR";
+      btn.style.boxShadow = "none";
+    }
+
+    /**
+     * =========================
+     * Submit
+     * =========================
+     */
+    async function submitForm() {
+      const form = document.getElementById("studyForm");
+      if (!form.checkValidity()) {
+        alert("Completa todos los campos");
+        return;
+      }
+
+      const payload = {
+        idEstudio: document.getElementById("idEstudio").value,
+        fecha: document.getElementById("fecha").value,   // YYYY-MM-DD
+        materia: document.getElementById("materia").value.trim(),
+        cantidad: document.getElementById("cantidad").value,
+        tiempo: document.getElementById("tiempo").value
       };
 
-      const btn = document.querySelector('button[onclick="submitForm()"]');
+      const btn = document.getElementById("btnSave");
       const originalText = btn.innerText;
       btn.innerText = "PROCESANDO...";
       btn.disabled = true;
 
       try {
-        // Truco anti-preflight: Content-Type text/plain
-        const resp = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(rawData)
-        });
+        const res = await apiSaveRecord(payload);
 
-        const res = await resp.json();
-        if (!res.ok) throw new Error(res.error || "Error guardando");
-
+        // update local rows sin recargar todo desde server
         updateLocalData(res.row, res.status);
 
-        if(res.status === 'Created') resetForm();
+        setApiStatus(true, "OK", `${res.status} (${new Date().toLocaleTimeString()})`);
 
+        if (res.status === "Created") resetForm();
       } catch (err) {
-        alert("Error guardando. Revisá permisos/deploy.");
         console.error(err);
+        setApiStatus(false, "ERROR", String(err));
+        alert("Error guardando. Mirá consola (F12) y status API.");
       } finally {
         btn.innerText = originalText;
         btn.disabled = false;
@@ -361,14 +889,26 @@
     }
 
     function updateLocalData(newRow, status) {
-      if (status === 'Created') {
+      if (status === "Created") {
         globalRows.push(newRow);
       } else {
         const id = newRow[0];
-        const index = globalRows.findIndex(row => row[0] === id);
-        if (index !== -1) globalRows[index] = newRow;
+        const idx = globalRows.findIndex(r => r[0] === id);
+        if (idx !== -1) globalRows[idx] = newRow;
       }
       renderAll();
+    }
+
+    /**
+     * Seguridad mínima para no inyectar HTML
+     */
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
   </script>
 </body>
