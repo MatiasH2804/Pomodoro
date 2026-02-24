@@ -138,20 +138,20 @@
     dl.innerHTML = '';
     listaMaterias.forEach(m => dl.innerHTML += `<option value="${m}">`);
 
-    // Render Cards
-    const cards = document.getElementById('cards');
-    cards.innerHTML = '';
-    Object.entries(materias)
-      .sort(([,a], [,b]) => b - a)
-      .forEach(([mat, min]) => {
-        const hrs = Math.floor(min/60);
-        const restMin = min % 60;
-        cards.innerHTML += `
-          <div class="card">
-            <div class="val">${hrs}:${restMin.toString().padStart(2,'0')}</div>
-            <div class="lbl">${mat}</div>
-          </div>`;
-      });
+// Render Cards
+    const cards = document.getElementById('cards');
+    cards.innerHTML = '';
+    Object.entries(materias)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([mat, min]) => {
+        const hrs = Math.floor(min/60).toString().padStart(2, '0');
+        const restMin = (min % 60).toString().padStart(2, '0');
+        cards.innerHTML += `
+          <div class="card">
+            <div class="val">${hrs}:${restMin}:00</div>
+            <div class="lbl">${mat}</div>
+          </div>`;
+      });
   }
 
   document.getElementById('form').onsubmit = async (e) => {
