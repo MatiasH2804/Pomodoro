@@ -119,19 +119,25 @@
     const materias = {};
     const listaMaterias = new Set();
 
-   // Render Tabla
+// Render Tabla
     globalData.slice().reverse().forEach(row => {
       const [id, fecha, mat, cant, tiempo, total] = row;
       listaMaterias.add(mat);
       
+      // Calculamos los minutos exactos de la fila
+      const minutosFila = (parseInt(cant) || 0) * (parseInt(tiempo) || 0);
+      
+      // Formateamos a HH:MM:00
+      const hrsFila = Math.floor(minutosFila / 60).toString().padStart(2, '0');
+      const restMinFila = (minutosFila % 60).toString().padStart(2, '0');
+      const totalFormateado = `${hrsFila}:${restMinFila}:00`;
+
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${fecha}</td><td>${mat}</td><td>${cant}</td><td>${tiempo}</td><td style='color:var(--green)'>${total}</td>`;
+      tr.innerHTML = `<td>${fecha}</td><td>${mat}</td><td>${cant}</td><td>${tiempo}</td><td style='color:var(--green)'>${totalFormateado}</td>`;
       tr.onclick = () => edit(row);
       tbody.appendChild(tr);
 
-      // Calculos totales (CORREGIDO)
-      // Ignoramos la variable "total" de la planilla y calculamos los minutos exactos
-      const minutosFila = (parseInt(cant) || 0) * (parseInt(tiempo) || 0);
+      // Calculos totales para las tarjetas
       materias[mat] = (materias[mat] || 0) + minutosFila;
     });
 
