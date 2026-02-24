@@ -119,32 +119,35 @@
     const materias = {};
     const listaMaterias = new Set();
 
-    // Render Tabla
-    globalData.slice().reverse().forEach(row => {
-      const [id, fecha, mat, cant, tiempo, total] = row;
-      listaMaterias.add(mat);
-      
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${fecha}</td><td>${mat}</td><td>${cant}</td><td>${tiempo}</td><td style='color:var(--green)'>${total}</td>`;
-      tr.onclick = () => edit(row);
-      tbody.appendChild(tr);
+   // Render Tabla
+    globalData.slice().reverse().forEach(row => {
+      const [id, fecha, mat, cant, tiempo, total] = row;
+      listaMaterias.add(mat);
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${fecha}</td><td>${mat}</td><td>${cant}</td><td>${tiempo}</td><td style='color:var(--green)'>${total}</td>`;
+      tr.onclick = () => edit(row);
+      tbody.appendChild(tr);
 
-      // Calculos totales
-      materias[mat] = (materias[mat] || 0) + (parseInt(total) || 0);
-    });
+      // Calculos totales (CORREGIDO)
+      // Ignoramos la variable "total" de la planilla y calculamos los minutos exactos
+      const minutosFila = (parseInt(cant) || 0) * (parseInt(tiempo) || 0);
+      materias[mat] = (materias[mat] || 0) + minutosFila;
+    });
 
-    // Render Datalist
-    const dl = document.getElementById('materiasList');
-    dl.innerHTML = '';
-    listaMaterias.forEach(m => dl.innerHTML += `<option value="${m}">`);
+    // Render Datalist
+    const dl = document.getElementById('materiasList');
+    dl.innerHTML = '';
+    listaMaterias.forEach(m => dl.innerHTML += `<option value="${m}">`);
 
-// Render Cards
+    // Render Cards
     const cards = document.getElementById('cards');
     cards.innerHTML = '';
     Object.entries(materias)
       .sort(([,a], [,b]) => b - a)
       .forEach(([mat, min]) => {
-        const hrs = Math.floor(min/60).toString().padStart(2, '0');
+        // Lógica matemática para formato HH:MM:00
+        const hrs = Math.floor(min / 60).toString().padStart(2, '0');
         const restMin = (min % 60).toString().padStart(2, '0');
         cards.innerHTML += `
           <div class="card">
